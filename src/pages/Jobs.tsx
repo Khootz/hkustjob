@@ -13,7 +13,8 @@ import {
   DollarSign,
   Key,
   Check,
-  X
+  X,
+  Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const Jobs = () => {
   const { toast } = useToast();
@@ -28,6 +38,8 @@ const Jobs = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [phpSessionId, setPhpSessionId] = useState("");
   const [showSessionInput, setShowSessionInput] = useState(false);
+  const [showScrapeDialog, setShowScrapeDialog] = useState(false);
+  const [pagesToScrape, setPagesToScrape] = useState("10");
 
   // Load PHP Session ID from localStorage on component mount
   useEffect(() => {
@@ -129,11 +141,34 @@ const Jobs = () => {
     });
   };
 
-  const handleUploadExcel = () => {
+  const handleStartScraping = () => {
+    if (!phpSessionId) {
+      toast({
+        title: "Session ID Required",
+        description: "Please enter a PHP Session ID before starting scraping.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const pages = parseInt(pagesToScrape);
+    if (!pages || pages < 1) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid number of pages to scrape.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowScrapeDialog(false);
     toast({
-      title: "Excel Upload",
-      description: "Feature coming soon - drag and drop Excel files here.",
+      title: "Scraping Started",
+      description: `Starting to scrape ${pages} pages with Session ID: ${phpSessionId.substring(0, 8)}...`,
     });
+    
+    // Here you can add the actual scraping logic that will connect to your Python backend
+    console.log('Starting scrape with:', { phpSessionId, pages });
   };
 
   const filteredJobs = jobsData.filter(job => {
@@ -179,10 +214,45 @@ const Jobs = () => {
             )}
           </div>
           
-          <Button onClick={handleUploadExcel} className="action-button">
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Excel
-          </Button>
+          <Dialog open={showScrapeDialog} onOpenChange={setShowScrapeDialog}>
+            <DialogTrigger asChild>
+              <Button className="action-button">
+                <Play className="h-4 w-4 mr-2" />
+                Start Scraping
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="glass-card">
+              <DialogHeader>
+                <DialogTitle className="gradient-text">Configure Scraping</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pages">Number of pages to scrape</Label>
+                  <Input
+                    id="pages"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={pagesToScrape}
+                    onChange={(e) => setPagesToScrape(e.target.value)}
+                    className="glass-button border-glass-border w-32"
+                    placeholder="10"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Enter the number of job pages to scrape (1-1000)
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowScrapeDialog(false)} className="glass-button">
+                  Cancel
+                </Button>
+                <Button onClick={handleStartScraping} className="action-button">
+                  Done
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" className="glass-button">
             <Download className="h-4 w-4 mr-2" />
             Export
