@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { InteractiveBackground } from "@/components/InteractiveBackground";
 import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
 import CoverLetterStudio from "./pages/CoverLetterStudio";
@@ -22,6 +23,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SidebarProvider>
+          <InteractiveBackground />
           <div className="min-h-screen flex w-full">
             <AppSidebar />
             <main className="flex-1 overflow-auto">
