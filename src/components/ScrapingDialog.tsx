@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, Loader2, AlertCircle } from 'lucide-react';
-import { parsePageInput } from '@/lib/api';
+import { Download, Loader2, AlertCircle, Bug } from 'lucide-react';
+import { parsePageInput, debugScraping } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface ScrapingDialogProps {
   onStartScraping: (pages: number[], phpSessionId: string) => void;
@@ -16,22 +17,65 @@ interface ScrapingDialogProps {
 export const ScrapingDialog = ({ onStartScraping, isLoading, children }: ScrapingDialogProps) => {
   const [open, setOpen] = useState(false);
   const [pageInput, setPageInput] = useState('1');
-  const [phpSessionId, setPhpSessionId] = useState('3716823befe2fdb680e128fc013e9fc59b9d9958b9c1eadc73136eb9b9aea835');
+  const [phpSessionId, setPhpSessionId] = useState('');
   const [error, setError] = useState('');
+  const [debugResult, setDebugResult] = useState<string>('');
+  const { toast } = useToast();
 
   const handleSubmit = () => {
     try {
       setError('');
       const pages = parsePageInput(pageInput);
       
+      if (!phpSessionId.trim()) {
+        setError('PHP Session ID is required');
+        return;
+      }
+      
       if (pages.length > 50) {
         setError('Warning: Large page ranges may take a long time to process.');
       }
       
+      console.log('Sending to backend:', { pages, phpSessionId: phpSessionId.substring(0, 10) + '...' });
       onStartScraping(pages, phpSessionId);
       setOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid input');
+    }
+  };
+
+  const handleDebugTest = async () => {
+    if (!phpSessionId.trim()) {
+      setError('Please enter a PHP Session ID first');
+      return;
+    }
+
+    try {
+      setError('');
+      setDebugResult('Testing...');
+      const result = await debugScraping(phpSessionId, 1);
+      
+      if (result.success) {
+        const info = result.debug_info;
+        setDebugResult(`
+✅ Connected successfully!
+📊 Found ${info.job_rows_found} job rows
+📝 Response length: ${info.response_length} chars
+🔗 URL: ${info.url}
+📋 Session ID used: ${info.session_id_used}
+        `.trim());
+        
+        toast({
+          title: "Debug Test Successful",
+          description: `Found ${info.job_rows_found} job rows on the page`,
+        });
+      } else {
+        setDebugResult(`❌ Test failed: ${result.message}`);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Debug test failed';
+      setDebugResult(`❌ Error: ${errorMsg}`);
+      setError(errorMsg);
     }
   };
 
@@ -77,18 +121,28 @@ export const ScrapingDialog = ({ onStartScraping, isLoading, children }: Scrapin
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="session">PHP Session ID</Label>
+            <Label htmlFor="session">PHP Session ID *</Label>
             <Input
               id="session"
               value={phpSessionId}
               onChange={(e) => setPhpSessionId(e.target.value)}
-              placeholder="PHP Session ID from HKUST career site"
+              placeholder="Enter your PHP Session ID from HKUST career site"
               disabled={isLoading}
+              className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Copy from your browser's cookies when logged into the HKUST career portal
+              <strong>Required:</strong> Copy PHPSESSID cookie from career.hkust.edu.hk after logging in
             </p>
           </div>
+
+          {debugResult && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <Bug className="h-4 w-4" />
+              <AlertDescription className="text-blue-800 whitespace-pre-line font-mono text-xs">
+                {debugResult}
+              </AlertDescription>
+            </Alert>
+          )}
 
           {error && (
             <Alert className={error.includes('Warning') ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'}>
@@ -101,8 +155,20 @@ export const ScrapingDialog = ({ onStartScraping, isLoading, children }: Scrapin
 
           <div className="flex gap-2">
             <Button
+              onClick={handleDebugTest}
+              disabled={isLoading || !phpSessionId.trim()}
+              variant="outline"
+              size="sm"
+            >
+              <Bug className="mr-2 h-4 w-4" />
+              Test Connection
+            </Button>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
               onClick={handleSubmit}
-              disabled={isLoading || !pageInput.trim()}
+              disabled={isLoading || !pageInput.trim() || !phpSessionId.trim()}
               className="flex-1"
             >
               {isLoading ? (
