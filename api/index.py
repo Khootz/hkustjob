@@ -329,9 +329,6 @@ def download_excel(filename):
 def health_check():
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
-# Export app for Vercel
-app
-
 # For local development
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
