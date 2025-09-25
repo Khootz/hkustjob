@@ -97,8 +97,11 @@ def scrape_job_listings(session_cookies, pages=None):
         for page_num in pages:
             print(f"Scraping page {page_num}...")
             
-            # Request the job listing page
-            list_url = f"{BASE_LIST_URL}?type=student&job_type=&location=&page={page_num}"
+            # Build URL same as working Job.py
+            if page_num == 1:
+                list_url = BASE_LIST_URL
+            else:
+                list_url = f"{BASE_LIST_URL}?page={page_num}&"
             
             try:
                 response = session.get(
@@ -108,53 +111,71 @@ def scrape_job_listings(session_cookies, pages=None):
                 )
                 response.raise_for_status()
                 
-                soup = BeautifulSoup(response.text, 'html.parser')
+                soup = BeautifulSoup(response.text, 'lxml')
                 
-                # Find job rows
-                job_rows = soup.find_all('tr', class_=lambda x: x and ('odd' in x or 'even' in x))
+                # Use the same selector as working Job.py
+                job_rows = soup.select("tr.job-item")
                 
                 page_jobs = 0
                 
                 for row in job_rows:
                     try:
-                        # Extract job data from the row
-                        cells = row.find_all('td')
-                        
-                        if len(cells) >= 6:  # Ensure we have enough cells
-                            # Extract job title and link
-                            title_cell = cells[1]  # Second column typically contains title
-                            title_link = title_cell.find('a')
+                        # Use same extraction logic as Job.py
+                        large_view_tds = row.select("td.detail-text.large-view")
+                        if not large_view_tds:
+                            continue
                             
-                            if title_link:
-                                job_title = clean_text(title_link.get_text())
-                                job_link = title_link.get('href', '')
-                                
-                                # Make absolute URL
-                                if job_link and not job_link.startswith('http'):
-                                    job_link = urljoin(BASE, job_link)
-                                
-                                # Extract other fields
-                                company = clean_text(cells[2].get_text()) if len(cells) > 2 else ""
-                                location = clean_text(cells[3].get_text()) if len(cells) > 3 else ""
-                                job_type = clean_text(cells[4].get_text()) if len(cells) > 4 else ""
-                                deadline = clean_text(cells[5].get_text()) if len(cells) > 5 else ""
-                                
-                                # Create job dictionary
-                                job_data = {
-                                    "job_title": job_title,
-                                    "company": company,
-                                    "location": location,
-                                    "job_type": job_type,
-                                    "deadline": deadline,
-                                    "link": job_link,
-                                    "applied": False,
-                                    "letter": False,
-                                    "scraped_date": datetime.now().isoformat(),
-                                    "page": page_num
-                                }
-                                
-                                all_jobs.append(job_data)
-                                page_jobs += 1
+                        first_large_view = large_view_tds[0]
+                        job_post_link = first_large_view.select_one("a.job-post")
+                        if not job_post_link:
+                            continue
+                            
+                        detail_url = urljoin(BASE, job_post_link.get("href")) if job_post_link.has_attr("href") else ""
+
+                        # Extract company
+                        company = ""
+                        company_font2 = first_large_view.select("table tr td font.font2")
+                        if company_font2:
+                            company = clean_text(company_font2[0].get_text(" ", strip=True))
+                        
+                        # Extract job title and nature
+                        job_title = ""
+                        job_nature = ""
+                        
+                        if len(large_view_tds) >= 2:
+                            job_title_td = large_view_tds[1]
+                            job_title_link = job_title_td.select_one("a.job-post")
+                            if job_title_link:
+                                font2_elements = job_title_link.select("font.font2")
+                                if len(font2_elements) >= 1:
+                                    job_title = clean_text(font2_elements[0].get_text(" ", strip=True))
+                                if len(font2_elements) >= 2:
+                                    job_nature = clean_text(font2_elements[1].get_text(" ", strip=True))
+                        
+                        # Extract dates
+                        posting_date = ""
+                        deadline = ""
+                        if len(large_view_tds) >= 4:
+                            posting_date = clean_text(large_view_tds[2].get_text(" ", strip=True))
+                            deadline = clean_text(large_view_tds[3].get_text(" ", strip=True))
+
+                        # Create job dictionary with same structure as Job.py
+                        job_data = {
+                            "job_title": job_title,
+                            "company": company,
+                            "job_nature": job_nature,
+                            "posting_date": posting_date,
+                            "deadline": deadline,
+                            "link": detail_url,
+                            "applied": False,
+                            "letter": False,
+                            "scraped_date": datetime.now().isoformat(),
+                            "page": page_num
+                        }
+                        
+                        if job_title and company:  # Only add if we have essential data
+                            all_jobs.append(job_data)
+                            page_jobs += 1
                     
                     except Exception as e:
                         print(f"Error processing job row: {str(e)}")
@@ -344,16 +365,49 @@ def debug_scraping():
             }), 400
         
         session_cookies = {"PHPSESSID": php_session_id}
-        list_url = f"{BASE_LIST_URL}?type=student&job_type=&location=&page={page}"
+        
+        # Build URL same as working Job.py
+        if page == 1:
+            list_url = BASE_LIST_URL
+        else:
+            list_url = f"{BASE_LIST_URL}?page={page}&"
         
         session = requests.Session()
         session.headers.update(HEADERS)
         
         response = session.get(list_url, cookies=session_cookies, timeout=REQUEST_TIMEOUT)
         
-        # Return debug info
-        soup = BeautifulSoup(response.text, 'html.parser')
-        job_rows = soup.find_all('tr', class_=lambda x: x and ('odd' in x or 'even' in x))
+        # Return debug info using same selectors as Job.py
+        soup = BeautifulSoup(response.text, 'lxml')
+        job_rows = soup.select("tr.job-item")  # Use same selector as Job.py
+        
+        # Try to extract first job details for debugging
+        sample_job = None
+        if job_rows:
+            try:
+                row = job_rows[0]
+                large_view_tds = row.select("td.detail-text.large-view")
+                if large_view_tds and len(large_view_tds) >= 2:
+                    # Extract sample data
+                    first_large_view = large_view_tds[0]
+                    company_font2 = first_large_view.select("table tr td font.font2")
+                    company = clean_text(company_font2[0].get_text(" ", strip=True)) if company_font2 else "N/A"
+                    
+                    job_title_td = large_view_tds[1]
+                    job_title_link = job_title_td.select_one("a.job-post")
+                    job_title = "N/A"
+                    if job_title_link:
+                        font2_elements = job_title_link.select("font.font2")
+                        if font2_elements:
+                            job_title = clean_text(font2_elements[0].get_text(" ", strip=True))
+                    
+                    sample_job = {
+                        "company": company,
+                        "job_title": job_title,
+                        "has_large_view_tds": len(large_view_tds)
+                    }
+            except Exception as e:
+                sample_job = {"error": str(e)}
         
         return jsonify({
             "success": True,
@@ -362,6 +416,7 @@ def debug_scraping():
                 "response_status": response.status_code,
                 "response_length": len(response.text),
                 "job_rows_found": len(job_rows),
+                "sample_job": sample_job,
                 "html_sample": response.text[:1000] + "..." if len(response.text) > 1000 else response.text,
                 "session_id_used": php_session_id[:8] + "..." if len(php_session_id) > 8 else php_session_id
             }
