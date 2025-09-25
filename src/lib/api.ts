@@ -52,7 +52,10 @@ export const jobsApi = {
   startScraping: async (request: ScrapingRequest): Promise<ScrapingResponse> => {
     const response = await apiRequest('/api/scrape', {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        pages: request.pages,
+        phpSessionId: request.phpSessionId
+      }),
     });
 
     return response.json();

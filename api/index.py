@@ -329,9 +329,8 @@ def download_excel(filename):
 def health_check():
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
-# This is the handler for Vercel
-def handler(request):
-    return app
+# Export app for Vercel
+app
 
 # For local development
 if __name__ == '__main__':
