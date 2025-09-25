@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
@@ -10,7 +10,8 @@ import {
   Calendar,
   MapPin,
   Building,
-  DollarSign
+  DollarSign,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,103 +19,174 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
+import { ScrapingDialog } from "@/components/ScrapingDialog";
+import { ScrapingProgressCard } from "@/components/ScrapingProgress";
+import { jobsApi, downloadFile } from "@/lib/api";
+import type { Job, ScrapingProgress } from "@/types/jobs";
 
 const Jobs = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [scrapingProgress, setScrapingProgress] = useState<ScrapingProgress | null>(null);
+  const [excelFilePath, setExcelFilePath] = useState<string | null>(null);
 
-  const jobsData = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: "TechCorp Inc.",
-      location: "San Francisco, CA",
-      salary: "$120k - $150k",
-      type: "Full-time",
-      posted: "2 days ago",
-      status: "applied",
-      description: "Looking for an experienced frontend developer with React expertise...",
-      skills: ["React", "TypeScript", "Next.js"]
-    },
-    {
-      id: 2,
-      title: "Full Stack Engineer",
-      company: "StartupXYZ",
-      location: "Remote",
-      salary: "$100k - $130k",
-      type: "Full-time",
-      posted: "1 day ago",
-      status: "generated",
-      description: "Join our growing team building the next-gen platform...",
-      skills: ["Python", "React", "AWS"]
-    },
-    {
-      id: 3,
-      title: "React Developer",
-      company: "Digital Solutions",
-      location: "New York, NY",
-      salary: "$90k - $120k",
-      type: "Contract",
-      posted: "3 hours ago",
-      status: "new",
-      description: "Seeking a skilled React developer for our client projects...",
-      skills: ["React", "JavaScript", "CSS"]
-    },
-    {
-      id: 4,
-      title: "Software Engineer",
-      company: "MegaCorp",
-      location: "Austin, TX",
-      salary: "$110k - $140k",
-      type: "Full-time",
-      posted: "5 hours ago",
-      status: "new",
-      description: "Building scalable applications for millions of users...",
-      skills: ["Node.js", "MongoDB", "Docker"]
+  // Load jobs from localStorage on mount
+  useEffect(() => {
+    const savedJobs = localStorage.getItem('hkust-jobs');
+    if (savedJobs) {
+      try {
+        setJobs(JSON.parse(savedJobs));
+      } catch (error) {
+        console.error('Error loading saved jobs:', error);
+      }
     }
-  ];
+  }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "applied":
-        return <Badge className="status-success">Applied</Badge>;
-      case "generated":
-        return <Badge className="status-warning">Letter Ready</Badge>;
-      case "new":
-        return <Badge className="status-pending">New</Badge>;
-      default:
-        return <Badge className="status-pending">Unknown</Badge>;
+  // Save jobs to localStorage when jobs change
+  useEffect(() => {
+    if (jobs.length > 0) {
+      localStorage.setItem('hkust-jobs', JSON.stringify(jobs));
+    }
+  }, [jobs]);
+
+  const handleStartScraping = async (pages: number[], phpSessionId: string) => {
+    setIsLoading(true);
+    setScrapingProgress({
+      total_pages: pages.length,
+      completed_pages: 0,
+      total_jobs_found: 0,
+      new_jobs: 0,
+      status: 'in_progress'
+    });
+
+    try {
+      const response = await jobsApi.startScraping({
+        pages,
+        phpSessionId
+      });
+
+      if (response.success && response.data) {
+        setJobs(response.data.jobs);
+        setExcelFilePath(response.data.excel_file_path || null);
+        
+        setScrapingProgress({
+          total_pages: pages.length,
+          completed_pages: pages.length,
+          total_jobs_found: response.data.jobs.length,
+          new_jobs: response.data.jobs.length,
+          status: 'completed'
+        });
+
+        toast({
+          title: "Scraping Completed",
+          description: `Successfully scraped ${response.data.jobs.length} jobs from ${pages.length} pages.`,
+        });
+      } else {
+        throw new Error(response.message || 'Scraping failed');
+      }
+    } catch (error) {
+      setScrapingProgress({
+        total_pages: pages.length,
+        completed_pages: 0,
+        total_jobs_found: 0,
+        new_jobs: 0,
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      toast({
+        title: "Scraping Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handlePreviewLetter = (jobId: number) => {
+  const handleDownloadExcel = async () => {
+    if (!excelFilePath) {
+      toast({
+        title: "No Excel File",
+        description: "Please run scraping first to generate an Excel file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const blob = await jobsApi.downloadExcel(excelFilePath);
+      const filename = `hkust_jobs_${new Date().toISOString().split('T')[0]}.xlsx`;
+      downloadFile(blob, filename);
+      
+      toast({
+        title: "Download Started",
+        description: "Excel file download has started.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: error instanceof Error ? error.message : "Failed to download Excel file",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getStatusBadge = (job: Job) => {
+    if (job.applied === "NO EMAIL") {
+      return <Badge className="status-warning">No Email</Badge>;
+    } else if (job.applied === true) {
+      return <Badge className="status-success">Applied</Badge>;
+    } else if (job.letter === true) {
+      return <Badge className="status-warning">Letter Ready</Badge>;
+    } else {
+      return <Badge className="status-pending">New</Badge>;
+    }
+  };
+
+  const handlePreviewLetter = (jobIndex: number) => {
+    const job = jobs[jobIndex];
     toast({
       title: "Opening Cover Letter",
-      description: "Generating preview for this position...",
+      description: `Generating preview for ${job.job_title} at ${job.company}...`,
     });
   };
 
-  const handleQueueEmail = (jobId: number) => {
+  const handleQueueEmail = (jobIndex: number) => {
+    const job = jobs[jobIndex];
+    
+    // Update the job status
+    const updatedJobs = [...jobs];
+    updatedJobs[jobIndex] = { ...job, applied: true };
+    setJobs(updatedJobs);
+    
     toast({
       title: "Email Queued",
-      description: "Application will be sent in the next batch.",
+      description: `Application for ${job.job_title} will be sent in the next batch.`,
     });
   };
 
-  const handleUploadExcel = () => {
-    toast({
-      title: "Excel Upload",
-      description: "Feature coming soon - drag and drop Excel files here.",
-    });
+  const getJobStatus = (job: Job): 'new' | 'applied' | 'generated' | 'no_email' => {
+    if (job.applied === "NO EMAIL") return 'no_email';
+    if (job.applied === true) return 'applied';
+    if (job.letter === true) return 'generated';
+    return 'new';
   };
 
-  const filteredJobs = jobsData.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = job.job_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.company.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = selectedFilter === "all" || job.status === selectedFilter;
+    const jobStatus = getJobStatus(job);
+    const matchesFilter = selectedFilter === "all" || jobStatus === selectedFilter;
     return matchesSearch && matchesFilter;
   });
+
+  const getStatsCount = (status: 'applied' | 'generated' | 'new' | 'no_email') => {
+    return jobs.filter(job => getJobStatus(job) === status).length;
+  };
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -128,13 +200,20 @@ const Jobs = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={handleUploadExcel} className="action-button">
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Excel
-          </Button>
-          <Button variant="outline" className="glass-button">
+          <ScrapingDialog onStartScraping={handleStartScraping} isLoading={isLoading}>
+            <Button className="action-button">
+              <Download className="h-4 w-4 mr-2" />
+              Start Scraping
+            </Button>
+          </ScrapingDialog>
+          <Button 
+            onClick={handleDownloadExcel} 
+            disabled={!excelFilePath}
+            variant="outline" 
+            className="glass-button"
+          >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            Download Excel
           </Button>
         </div>
       </header>
@@ -153,7 +232,7 @@ const Jobs = () => {
               />
             </div>
             <div className="flex gap-2">
-              {["all", "new", "generated", "applied"].map((filter) => (
+              {["all", "new", "generated", "applied", "no_email"].map((filter) => (
                 <Button
                   key={filter}
                   variant={selectedFilter === filter ? "default" : "outline"}
@@ -162,7 +241,7 @@ const Jobs = () => {
                   className={selectedFilter === filter ? "gradient-primary text-white" : "glass-button"}
                 >
                   <Filter className="h-3 w-3 mr-1" />
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  {filter === 'no_email' ? 'No Email' : filter.charAt(0).toUpperCase() + filter.slice(1)}
                 </Button>
               ))}
             </div>
@@ -174,38 +253,45 @@ const Jobs = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="glass-card text-center">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold gradient-text">{jobsData.length}</div>
+            <div className="text-2xl font-bold gradient-text">{jobs.length}</div>
             <div className="text-sm text-muted-foreground">Total Jobs</div>
           </CardContent>
         </Card>
         <Card className="glass-card text-center">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-success">{jobsData.filter(j => j.status === 'applied').length}</div>
+            <div className="text-2xl font-bold text-success">{getStatsCount('applied')}</div>
             <div className="text-sm text-muted-foreground">Applied</div>
           </CardContent>
         </Card>
         <Card className="glass-card text-center">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-warning">{jobsData.filter(j => j.status === 'generated').length}</div>
+            <div className="text-2xl font-bold text-warning">{getStatsCount('generated')}</div>
             <div className="text-sm text-muted-foreground">Letters Ready</div>
           </CardContent>
         </Card>
         <Card className="glass-card text-center">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary">{jobsData.filter(j => j.status === 'new').length}</div>
+            <div className="text-2xl font-bold text-primary">{getStatsCount('new')}</div>
             <div className="text-sm text-muted-foreground">New</div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Show scraping progress if active */}
+      {scrapingProgress && (
+        <div className="flex justify-center">
+          <ScrapingProgressCard progress={scrapingProgress} />
+        </div>
+      )}
+
       {/* Jobs Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredJobs.map((job, index) => (
-          <Card key={job.id} className={`glass-card hover:scale-[1.02] transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${index * 0.1}s` }}>
+          <Card key={`${job.company}-${job.job_title}-${index}`} className={`glass-card hover:scale-[1.02] transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${index * 0.1}s` }}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
-                  <CardTitle className="text-lg">{job.title}</CardTitle>
+                  <CardTitle className="text-lg">{job.job_title}</CardTitle>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Building className="h-3 w-3" />
@@ -213,42 +299,44 @@ const Jobs = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      {job.location}
+                      {job.job_nature || "Not specified"}
                     </div>
                   </div>
                 </div>
-                {getStatusBadge(job.status)}
+                {getStatusBadge(job)}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-1 text-success font-medium">
-                  <DollarSign className="h-3 w-3" />
-                  {job.salary}
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Mail className="h-3 w-3" />
+                  {job.email || "No email provided"}
                 </div>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  {job.posted}
+                  {job.posting_date || "Unknown"}
                 </div>
               </div>
 
               <p className="text-sm text-muted-foreground line-clamp-2">
-                {job.description}
+                {job.details ? job.details.substring(0, 150) + '...' : "No description available"}
               </p>
 
-              <div className="flex flex-wrap gap-1">
-                {job.skills.map((skill) => (
-                  <Badge key={skill} variant="outline" className="text-xs glass-button">
-                    {skill}
-                  </Badge>
-                ))}
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Deadline: {job.deadline || "Not specified"}</span>
+                {job.website && (
+                  <a href={job.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                    Visit Website
+                  </a>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2">
                 <Button 
                   size="sm" 
-                  onClick={() => handlePreviewLetter(job.id)}
+                  onClick={() => handlePreviewLetter(index)}
                   className="flex-1 action-button"
+                  disabled={job.applied === "NO EMAIL"}
                 >
                   <FileText className="h-3 w-3 mr-1" />
                   Preview Letter
@@ -256,15 +344,23 @@ const Jobs = () => {
                 <Button 
                   size="sm" 
                   variant="outline"
-                  onClick={() => handleQueueEmail(job.id)}
+                  onClick={() => handleQueueEmail(index)}
                   className="flex-1 glass-button"
+                  disabled={job.applied === "NO EMAIL" || job.applied === true}
                 >
                   <Mail className="h-3 w-3 mr-1" />
-                  Queue Email
+                  {job.applied === true ? "Applied" : "Queue Email"}
                 </Button>
-                <Button size="sm" variant="ghost" className="glass-button p-2">
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
+                {job.detail_url && (
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="glass-button p-2"
+                    onClick={() => window.open(job.detail_url, '_blank')}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
