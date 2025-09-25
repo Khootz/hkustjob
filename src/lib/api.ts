@@ -115,4 +115,19 @@ export const parsePageInput = (input: string): number[] => {
   }
 };
 
+// Debug function to test scraping
+export const debugScraping = async (phpSessionId: string, page: number = 1) => {
+  const response = await apiRequest('/api/debug', {
+    method: 'POST',
+    body: JSON.stringify({ phpSessionId, page }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new ApiError(response.status, errorData.message || 'Debug request failed');
+  }
+
+  return response.json();
+};
+
 export { ApiError };

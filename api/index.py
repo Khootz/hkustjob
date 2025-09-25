@@ -329,6 +329,50 @@ def download_excel(filename):
 def health_check():
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
+@app.route('/api/debug', methods=['POST'])
+def debug_scraping():
+    """Debug endpoint to test scraping without full processing"""
+    try:
+        data = request.get_json()
+        php_session_id = data.get('phpSessionId', '')
+        page = data.get('page', 1)
+        
+        if not php_session_id:
+            return jsonify({
+                "success": False,
+                "message": "PHP Session ID is required"
+            }), 400
+        
+        session_cookies = {"PHPSESSID": php_session_id}
+        list_url = f"{BASE_LIST_URL}?type=student&job_type=&location=&page={page}"
+        
+        session = requests.Session()
+        session.headers.update(HEADERS)
+        
+        response = session.get(list_url, cookies=session_cookies, timeout=REQUEST_TIMEOUT)
+        
+        # Return debug info
+        soup = BeautifulSoup(response.text, 'html.parser')
+        job_rows = soup.find_all('tr', class_=lambda x: x and ('odd' in x or 'even' in x))
+        
+        return jsonify({
+            "success": True,
+            "debug_info": {
+                "url": list_url,
+                "response_status": response.status_code,
+                "response_length": len(response.text),
+                "job_rows_found": len(job_rows),
+                "html_sample": response.text[:1000] + "..." if len(response.text) > 1000 else response.text,
+                "session_id_used": php_session_id[:8] + "..." if len(php_session_id) > 8 else php_session_id
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Debug failed: {str(e)}"
+        }), 500
+
 # For local development
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
