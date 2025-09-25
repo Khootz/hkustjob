@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
@@ -10,7 +10,10 @@ import {
   Calendar,
   MapPin,
   Building,
-  DollarSign
+  DollarSign,
+  Key,
+  Check,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +26,30 @@ const Jobs = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [phpSessionId, setPhpSessionId] = useState("");
+  const [showSessionInput, setShowSessionInput] = useState(false);
+
+  // Load PHP Session ID from localStorage on component mount
+  useEffect(() => {
+    const savedSessionId = localStorage.getItem("phpSessionId");
+    if (savedSessionId) {
+      setPhpSessionId(savedSessionId);
+    }
+  }, []);
+
+  // Save PHP Session ID to localStorage when it changes
+  const handleSessionIdChange = (value: string) => {
+    setPhpSessionId(value);
+    if (value) {
+      localStorage.setItem("phpSessionId", value);
+      toast({
+        title: "Session ID Saved",
+        description: "PHP Session ID has been stored for scraping operations.",
+      });
+    } else {
+      localStorage.removeItem("phpSessionId");
+    }
+  };
 
   const jobsData = [
     {
@@ -128,6 +155,30 @@ const Jobs = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {/* PHP Session ID Input */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSessionInput(!showSessionInput)}
+              className={`glass-button ${phpSessionId ? 'border-success text-success' : 'border-muted-foreground'}`}
+            >
+              <Key className="h-3 w-3 mr-1" />
+              {phpSessionId ? <Check className="h-3 w-3 ml-1" /> : <X className="h-3 w-3 ml-1" />}
+              Session
+            </Button>
+            {showSessionInput && (
+              <div className="flex items-center gap-2 animate-slide-in">
+                <Input
+                  placeholder="Enter PHP Session ID..."
+                  value={phpSessionId}
+                  onChange={(e) => handleSessionIdChange(e.target.value)}
+                  className="w-64 glass-button border-glass-border text-xs"
+                />
+              </div>
+            )}
+          </div>
+          
           <Button onClick={handleUploadExcel} className="action-button">
             <Upload className="h-4 w-4 mr-2" />
             Upload Excel
