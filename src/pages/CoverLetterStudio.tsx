@@ -22,15 +22,27 @@ const CoverLetterStudio = () => {
   const [currentGenerating, setCurrentGenerating] = useState(0);
   const [generatedLetters, setGeneratedLetters] = useState<string[]>([]);
 
-  // Mock job data with company names (this would come from the Jobs page database)
-  const mockJobs = [
-    { id: 1, company: "TechCorp Inc.", position: "Senior Frontend Developer" },
-    { id: 2, company: "StartupXYZ", position: "Full Stack Engineer" },
-    { id: 3, company: "Digital Solutions", position: "React Developer" },
-    { id: 4, company: "", position: "Software Engineer" }, // No company name
-    { id: 5, company: "InnovateCo", position: "Frontend Developer" },
-    { id: 6, company: "", position: "Backend Developer" }, // No company name
-  ];
+  // Load jobs from localStorage (same source as Jobs page)
+  const [savedJobs, setSavedJobs] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const loadJobs = () => {
+      const jobsData = localStorage.getItem('hkust-jobs');
+      if (jobsData) {
+        try {
+          setSavedJobs(JSON.parse(jobsData));
+        } catch (error) {
+          console.error('Error loading jobs:', error);
+          setSavedJobs([]);
+        }
+      }
+    };
+    
+    loadJobs();
+    // Listen for localStorage changes to update in real-time
+    window.addEventListener('storage', loadJobs);
+    return () => window.removeEventListener('storage', loadJobs);
+  }, []);
 
   const handleStartGeneration = () => {
     setShowNumberDialog(true);
@@ -46,8 +58,9 @@ const CoverLetterStudio = () => {
     const interval = setInterval(() => {
       setCurrentGenerating(prev => {
         const next = prev + 1;
-        const job = mockJobs[(next - 1) % mockJobs.length];
-        const letterName = job.company 
+        const jobIndex = (next - 1) % Math.max(savedJobs.length, 1);
+        const job = savedJobs[jobIndex];
+        const letterName = job?.company && job.company.trim() 
           ? `Cover letter for ${job.company}` 
           : `Cover letter ${next}`;
         
