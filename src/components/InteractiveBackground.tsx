@@ -25,17 +25,17 @@ export const InteractiveBackground = () => {
           background: `
             radial-gradient(
               circle at ${50 + gradientOffset * 0.3}% ${30 + gradientOffset * 0.2}%, 
-              hsl(195 100% 50% / ${opacity * 0.15}) 0%, 
+              hsl(195 100% 50% / ${opacity * 0.3}) 0%, 
               transparent 50%
             ),
             radial-gradient(
               circle at ${20 - gradientOffset * 0.2}% ${70 + gradientOffset * 0.1}%, 
-              hsl(51 100% 60% / ${opacity * 0.12}) 0%, 
+              hsl(51 100% 60% / ${opacity * 0.25}) 0%, 
               transparent 40%
             ),
             radial-gradient(
               circle at ${80 + gradientOffset * 0.1}% ${20 - gradientOffset * 0.15}%, 
-              hsl(220 70% 85% / ${opacity * 0.1}) 0%, 
+              hsl(220 70% 85% / ${opacity * 0.2}) 0%, 
               transparent 35%
             ),
             linear-gradient(

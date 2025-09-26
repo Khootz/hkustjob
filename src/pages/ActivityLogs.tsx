@@ -185,22 +185,22 @@ const ActivityLogs = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Activity & Logs</h1>
-            <p className="text-muted-foreground">Monitor system activity and troubleshoot issues</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Activity & Logs</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Monitor system activity and troubleshoot issues</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={handleRefreshLogs} variant="outline" className="glass-button">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <Button onClick={handleRefreshLogs} variant="outline" className="glass-button w-full sm:w-auto text-sm">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={handleDownloadLogs} className="action-button">
+          <Button onClick={handleDownloadLogs} className="action-button w-full sm:w-auto text-sm">
             <Download className="h-4 w-4 mr-2" />
             Export Logs
           </Button>
@@ -238,19 +238,19 @@ const ActivityLogs = () => {
       {/* Filters */}
       <Card className="glass-card animate-slide-up" style={{ animationDelay: '0.4s' }}>
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
+          <div className="flex flex-col gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search activity logs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 glass-button border-glass-border"
+                className="pl-10 glass-button border-glass-border w-full"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="glass-button border-glass-border w-32">
+                <SelectTrigger className="glass-button border-glass-border w-full sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="glass-panel border-glass-border">
@@ -263,7 +263,7 @@ const ActivityLogs = () => {
               </Select>
               
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="glass-button border-glass-border w-32">
+                <SelectTrigger className="glass-button border-glass-border w-full sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="glass-panel border-glass-border">

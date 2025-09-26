@@ -110,19 +110,19 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-8">
+    <div className="min-h-screen p-3 sm:p-6 space-y-6 sm:space-y-8">
       {/* Header */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back! Here's your job application overview.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Dashboard</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Welcome back! Here's your job application overview.</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-lg">
+        <div className="flex items-center gap-2 glass-card px-3 sm:px-4 py-2 rounded-lg">
           <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium">System Active</span>
+          <span className="text-xs sm:text-sm font-medium">System Active</span>
         </div>
       </header>
 
@@ -155,8 +155,8 @@ const Dashboard = () => {
 
       {/* Quick Actions */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h2 className="text-lg sm:text-xl font-semibold">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {quickActions.map((action, index) => (
             <Card key={action.title} className={`glass-card hover:scale-105 cursor-pointer transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${(index + 4) * 0.1}s` }}>
               <CardHeader>
@@ -178,7 +178,7 @@ const Dashboard = () => {
                 <Button
                   onClick={action.action}
                   disabled={isRunning && action.title.includes("Scraper")}
-                  className={`w-full action-button ${
+                  className={`w-full action-button text-sm sm:text-base ${
                     action.variant === 'primary' ? 'gradient-primary text-white hover:shadow-lg' :
                     action.variant === 'secondary' ? 'bg-secondary hover:bg-secondary-glow' :
                     'bg-accent hover:bg-accent-glow'
@@ -203,7 +203,7 @@ const Dashboard = () => {
 
       {/* Recent Activity */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Recent Activity</h2>
+        <h2 className="text-lg sm:text-xl font-semibold">Recent Activity</h2>
         <Card className="glass-card animate-slide-up" style={{ animationDelay: '0.7s' }}>
           <CardContent className="p-6">
             <div className="space-y-4">

@@ -189,19 +189,19 @@ const Jobs = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Jobs</h1>
-            <p className="text-muted-foreground">Manage your job applications and opportunities</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Jobs</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Manage your job applications and opportunities</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <ScrapingDialog onStartScraping={handleStartScraping} isLoading={isLoading}>
-            <Button className="action-button">
+            <Button className="action-button w-full sm:w-auto text-sm">
               <Download className="h-4 w-4 mr-2" />
               Start Scraping
             </Button>
@@ -210,7 +210,7 @@ const Jobs = () => {
             onClick={handleDownloadExcel} 
             disabled={!excelFilePath}
             variant="outline" 
-            className="glass-button"
+            className="glass-button w-full sm:w-auto text-sm"
           >
             <Download className="h-4 w-4 mr-2" />
             Download Excel
@@ -221,24 +221,24 @@ const Jobs = () => {
       {/* Filters and Search */}
       <Card className="glass-card">
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
+          <div className="flex flex-col gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search jobs, companies, or locations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 glass-button border-glass-border"
+                className="pl-10 glass-button border-glass-border w-full"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {["all", "new", "generated", "applied", "no_email"].map((filter) => (
                 <Button
                   key={filter}
                   variant={selectedFilter === filter ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedFilter(filter)}
-                  className={selectedFilter === filter ? "gradient-primary text-white" : "glass-button"}
+                  className={`text-xs sm:text-sm ${selectedFilter === filter ? "gradient-primary text-white" : "glass-button"}`}
                 >
                   <Filter className="h-3 w-3 mr-1" />
                   {filter === 'no_email' ? 'No Email' : filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -285,7 +285,7 @@ const Jobs = () => {
       )}
 
       {/* Jobs Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {filteredJobs.map((job, index) => (
           <Card key={`${job.company}-${job.job_title}-${index}`} className={`glass-card hover:scale-[1.02] transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${index * 0.1}s` }}>
             <CardHeader>
@@ -331,11 +331,11 @@ const Jobs = () => {
                 )}
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <Button 
                   size="sm" 
                   onClick={() => handlePreviewLetter(index)}
-                  className="flex-1 action-button"
+                  className="flex-1 action-button text-xs sm:text-sm"
                   disabled={job.applied === "NO EMAIL"}
                 >
                   <FileText className="h-3 w-3 mr-1" />
@@ -345,7 +345,7 @@ const Jobs = () => {
                   size="sm" 
                   variant="outline"
                   onClick={() => handleQueueEmail(index)}
-                  className="flex-1 glass-button"
+                  className="flex-1 glass-button text-xs sm:text-sm"
                   disabled={job.applied === "NO EMAIL" || job.applied === true}
                 >
                   <Mail className="h-3 w-3 mr-1" />
@@ -355,7 +355,7 @@ const Jobs = () => {
                   <Button 
                     size="sm" 
                     variant="ghost" 
-                    className="glass-button p-2"
+                    className="glass-button p-2 sm:flex-shrink-0"
                     onClick={() => window.open(job.detail_url, '_blank')}
                   >
                     <ExternalLink className="h-3 w-3" />

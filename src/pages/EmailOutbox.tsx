@@ -128,26 +128,26 @@ const EmailOutbox = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Email Outbox</h1>
-            <p className="text-muted-foreground">Manage your application emails and sending status</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Email Outbox</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Manage your application emails and sending status</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <Button 
             onClick={handleToggleThrottling}
             variant={isThrottling ? "destructive" : "outline"}
-            className={isThrottling ? "" : "glass-button"}
+            className={`w-full sm:w-auto text-sm ${isThrottling ? "" : "glass-button"}`}
           >
             {isThrottling ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
             {isThrottling ? "Stop Throttling" : "Enable Throttling"}
           </Button>
-          <Button onClick={handleSendBatch} className="action-button gradient-primary text-white">
+          <Button onClick={handleSendBatch} className="action-button gradient-primary text-white w-full sm:w-auto text-sm">
             <Send className="h-4 w-4 mr-2" />
             Send Batch
           </Button>
@@ -185,24 +185,24 @@ const EmailOutbox = () => {
       {/* Controls */}
       <Card className="glass-card animate-slide-up" style={{ animationDelay: '0.4s' }}>
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
+          <div className="flex flex-col gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search emails by position or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 glass-button border-glass-border"
+                className="pl-10 glass-button border-glass-border w-full"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {["all", "sent", "queued", "sending", "failed"].map((status) => (
                 <Button
                   key={status}
                   variant={selectedStatus === status ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedStatus(status)}
-                  className={selectedStatus === status ? "gradient-primary text-white" : "glass-button"}
+                  className={`text-xs sm:text-sm ${selectedStatus === status ? "gradient-primary text-white" : "glass-button"}`}
                 >
                   {status.charAt(0).toUpperCase() + status.slice(1)}
                 </Button>
@@ -216,15 +216,15 @@ const EmailOutbox = () => {
       <div className="space-y-4">
         {filteredEmails.map((email, index) => (
           <Card key={email.id} className={`glass-card hover:scale-[1.01] transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${(index + 5) * 0.1}s` }}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-semibold text-lg">{email.position}</h3>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <h3 className="font-semibold text-base sm:text-lg break-words">{email.position}</h3>
                     {getStatusBadge(email.status, email)}
                   </div>
                   
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Mail className="h-3 w-3" />
                       {email.company}
@@ -277,19 +277,19 @@ const EmailOutbox = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {email.status === "failed" && (
                     <Button 
                       size="sm" 
                       onClick={() => handleRetryEmail(email.id)}
-                      className="action-button"
+                      className="action-button text-xs sm:text-sm"
                     >
                       <RefreshCw className="h-3 w-3 mr-1" />
                       Retry
                     </Button>
                   )}
                   {email.status === "queued" && email.priority === "high" && (
-                    <Badge variant="outline" className="text-warning border-warning">
+                    <Badge variant="outline" className="text-warning border-warning text-xs">
                       High Priority
                     </Badge>
                   )}

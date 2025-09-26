@@ -68,45 +68,45 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Settings</h1>
-            <p className="text-muted-foreground">Configure your job automation preferences</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Settings</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Configure your job automation preferences</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-lg">
+        <div className="flex items-center gap-2 glass-card px-3 sm:px-4 py-2 rounded-lg">
           <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium">All Systems Operational</span>
+          <span className="text-xs sm:text-sm font-medium">All Systems Operational</span>
         </div>
       </header>
 
-      <Tabs defaultValue="email" className="space-y-6">
-        <TabsList className="glass-card p-1 h-auto">
-          <TabsTrigger value="email" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white">
-            <Mail className="h-4 w-4 mr-2" />
-            Email
+      <Tabs defaultValue="email" className="space-y-4 sm:space-y-6">
+        <TabsList className="glass-card p-1 h-auto grid grid-cols-2 sm:grid-cols-4 gap-1">
+          <TabsTrigger value="email" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white text-xs sm:text-sm">
+            <Mail className="h-4 w-4 mr-0 sm:mr-2" />
+            <span className="hidden sm:inline">Email</span>
           </TabsTrigger>
-          <TabsTrigger value="scraping" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white">
-            <Database className="h-4 w-4 mr-2" />
-            Scraping
+          <TabsTrigger value="scraping" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white text-xs sm:text-sm">
+            <Database className="h-4 w-4 mr-0 sm:mr-2" />
+            <span className="hidden sm:inline">Scraping</span>
           </TabsTrigger>
-          <TabsTrigger value="letters" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white">
-            <FileText className="h-4 w-4 mr-2" />
-            Letters
+          <TabsTrigger value="letters" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white text-xs sm:text-sm">
+            <FileText className="h-4 w-4 mr-0 sm:mr-2" />
+            <span className="hidden sm:inline">Letters</span>
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white">
-            <SettingsIcon className="h-4 w-4 mr-2" />
-            Advanced
+          <TabsTrigger value="advanced" className="glass-button data-[state=active]:gradient-primary data-[state=active]:text-white text-xs sm:text-sm">
+            <SettingsIcon className="h-4 w-4 mr-0 sm:mr-2" />
+            <span className="hidden sm:inline">Advanced</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Email Settings */}
-        <TabsContent value="email" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="email" className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card className="glass-card animate-slide-up">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

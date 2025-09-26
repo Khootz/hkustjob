@@ -56,31 +56,31 @@ const CoverLetterStudio = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Cover Letter Studio</h1>
-            <p className="text-muted-foreground">Create and customize personalized cover letters</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Cover Letter Studio</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Create and customize personalized cover letters</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={handleSaveTemplate} variant="outline" className="glass-button">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <Button onClick={handleSaveTemplate} variant="outline" className="glass-button w-full sm:w-auto text-sm">
             <Save className="h-4 w-4 mr-2" />
             Save Template
           </Button>
-          <Button onClick={handleDownloadPDF} className="action-button gradient-primary text-white">
+          <Button onClick={handleDownloadPDF} className="action-button gradient-primary text-white w-full sm:w-auto text-sm">
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Controls Panel */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
           {/* Job Selection */}
           <Card className="glass-card animate-slide-up">
             <CardHeader>
