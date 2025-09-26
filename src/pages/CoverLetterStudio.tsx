@@ -9,7 +9,11 @@ import {
   Type,
   Sliders,
   RefreshCw,
-  Save
+  Save,
+  Clock,
+  CheckCircle,
+  Mail,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,40 +23,69 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const CoverLetterStudio = () => {
   const { toast } = useToast();
-  const [tone, setTone] = useState(70);
-  const [length, setLength] = useState(50);
-  const [selectedJob, setSelectedJob] = useState("senior-frontend");
-  const [customHighlights, setCustomHighlights] = useState("");
+  const [generateCount, setGenerateCount] = useState(5);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const jobOptions = [
-    { value: "senior-frontend", label: "Senior Frontend Developer - TechCorp" },
-    { value: "fullstack", label: "Full Stack Engineer - StartupXYZ" },
-    { value: "react-dev", label: "React Developer - Digital Solutions" },
-    { value: "software-eng", label: "Software Engineer - MegaCorp" }
+  // Mock job data based on backend output
+  const jobStats = {
+    totalJobs: 533,
+    completed: 513,
+    pending: 12,
+    noEmail: 8
+  };
+
+  const pendingJobs = [
+    {
+      id: 515,
+      company: "Huawei Tech. Investment Co., Limited (華為技術投資有限公司)",
+      position: "Research Intern (6 months or above)",
+      email: "hkrcrecruit@huawei.com"
+    },
+    {
+      id: 516,
+      company: "Ann Health Services (安然康健服務)",
+      position: "Creative Writer Intern (Marketing Stream)",
+      email: "hr@ahealth.com.hk"
+    },
+    {
+      id: 517,
+      company: "HONG KONG COMPETENCE EDUCATION FOUNDATION LIMITED",
+      position: "Part Time Tutor",
+      email: "hr@hkcef.info"
+    },
+    {
+      id: 518,
+      company: "Ratingdog (瑞霆狗（深圳）信息技术有限公司)",
+      position: "Analysts (Macro Strategy)",
+      email: "recruitment@ratingdog.cn"
+    },
+    {
+      id: 519,
+      company: "Doo Technology Limited (都會科技有限公司)",
+      position: "Customer Service Executive",
+      email: "hk.jobs@doogroup.com"
+    }
   ];
 
-  const handleGeneratePreview = () => {
+  const handleGenerateCoverLetters = async () => {
+    setIsGenerating(true);
     toast({
-      title: "Generating Preview",
-      description: "Creating personalized cover letter with your settings...",
+      title: "Generating Cover Letters",
+      description: `Generating ${generateCount} cover letters...`,
     });
-  };
-
-  const handleDownloadPDF = () => {
-    toast({
-      title: "PDF Generated",
-      description: "Your cover letter has been downloaded successfully!",
-    });
-  };
-
-  const handleSaveTemplate = () => {
-    toast({
-      title: "Template Saved",
-      description: "Your customizations have been saved for future use.",
-    });
+    
+    // Simulate generation time
+    setTimeout(() => {
+      setIsGenerating(false);
+      toast({
+        title: "Cover Letters Generated",
+        description: `Successfully generated ${generateCount} cover letters!`,
+      });
+    }, 3000);
   };
 
   return (
@@ -62,218 +95,144 @@ const CoverLetterStudio = () => {
         <div className="flex items-center gap-4">
           <SidebarTrigger className="glass-button p-2 rounded-lg" />
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Cover Letter Studio</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Create and customize personalized cover letters</p>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Cover Letter Generator</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Generate cover letters for pending job applications</p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-          <Button onClick={handleSaveTemplate} variant="outline" className="glass-button w-full sm:w-auto text-sm">
-            <Save className="h-4 w-4 mr-2" />
-            Save Template
-          </Button>
-          <Button onClick={handleDownloadPDF} className="action-button gradient-primary text-white w-full sm:w-auto text-sm">
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
+          <Button 
+            onClick={handleGenerateCoverLetters} 
+            disabled={isGenerating}
+            className="action-button gradient-primary text-white w-full sm:w-auto text-sm"
+          >
+            {isGenerating ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate Cover Letters
+              </>
+            )}
           </Button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Controls Panel */}
-        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-          {/* Job Selection */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Status Summary */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Job Stats */}
           <Card className="glass-card animate-slide-up">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" />
-                Job Selection
+                Job Status Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">Target Position</Label>
-                <Select value={selectedJob} onValueChange={setSelectedJob}>
-                  <SelectTrigger className="glass-button border-glass-border mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-panel border-glass-border">
-                    {jobOptions.map((job) => (
-                      <SelectItem key={job.value} value={job.value}>
-                        {job.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{jobStats.completed}</div>
+                  <div className="text-xs text-muted-foreground">Completed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{jobStats.pending}</div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
+                </div>
               </div>
-              <Button onClick={handleGeneratePreview} className="w-full action-button">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Generate Preview
-              </Button>
+              <div className="text-center pt-2 border-t border-glass-border">
+                <div className="text-sm text-muted-foreground">
+                  Total Jobs: <span className="font-medium">{jobStats.totalJobs}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  No Email: <span className="font-medium text-amber-600">{jobStats.noEmail}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Personalization Controls */}
+          {/* Generation Settings */}
           <Card className="glass-card animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sliders className="h-5 w-5 text-primary" />
-                Personalization
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium flex items-center justify-between">
-                  Tone
-                  <span className="text-xs text-muted-foreground">
-                    {tone < 30 ? 'Professional' : tone < 70 ? 'Balanced' : 'Enthusiastic'}
-                  </span>
-                </Label>
-                <Slider
-                  value={[tone]}
-                  onValueChange={(value) => setTone(value[0])}
-                  max={100}
-                  step={1}
-                  className="mt-3"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Formal</span>
-                  <span>Casual</span>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium flex items-center justify-between">
-                  Length
-                  <span className="text-xs text-muted-foreground">
-                    {length < 30 ? 'Concise' : length < 70 ? 'Standard' : 'Detailed'}
-                  </span>
-                </Label>
-                <Slider
-                  value={[length]}
-                  onValueChange={(value) => setLength(value[0])}
-                  max={100}
-                  step={1}
-                  className="mt-3"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Brief</span>
-                  <span>Comprehensive</span>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium">Custom Highlights</Label>
-                <Textarea
-                  placeholder="Add specific achievements or skills to emphasize..."
-                  value={customHighlights}
-                  onChange={(e) => setCustomHighlights(e.target.value)}
-                  className="mt-2 glass-button border-glass-border resize-none"
-                  rows={4}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Template Options */}
-          <Card className="glass-card animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5 text-primary" />
-                Template Options
+                <Settings className="h-5 w-5 text-primary" />
+                Generation Settings
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">Style</Label>
-                <Select defaultValue="modern">
-                  <SelectTrigger className="glass-button border-glass-border mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-panel border-glass-border">
-                    <SelectItem value="modern">Modern</SelectItem>
-                    <SelectItem value="classic">Classic</SelectItem>
-                    <SelectItem value="creative">Creative</SelectItem>
-                    <SelectItem value="minimal">Minimal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium">Font</Label>
-                <Select defaultValue="inter">
-                  <SelectTrigger className="glass-button border-glass-border mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-panel border-glass-border">
-                    <SelectItem value="inter">Inter</SelectItem>
-                    <SelectItem value="helvetica">Helvetica</SelectItem>
-                    <SelectItem value="times">Times New Roman</SelectItem>
-                    <SelectItem value="georgia">Georgia</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Number of Cover Letters to Generate</Label>
+                <div className="flex items-center gap-4 mt-2">
+                  <Slider
+                    value={[generateCount]}
+                    onValueChange={(value) => setGenerateCount(value[0])}
+                    max={jobStats.pending}
+                    min={1}
+                    step={1}
+                    className="flex-1"
+                  />
+                  <Badge variant="secondary" className="min-w-[3rem] justify-center">
+                    {generateCount}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Max: {jobStats.pending} pending jobs
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Preview Panel */}
-        <div className="lg:col-span-2">
-          <Card className="glass-card h-full animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <CardHeader className="border-b border-glass-border">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-primary" />
-                  Live Preview
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" className="glass-button">
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    Refresh
-                  </Button>
-                  <Button size="sm" variant="outline" className="glass-button">
-                    <Type className="h-3 w-3 mr-1" />
-                    Zoom
-                  </Button>
-                </div>
-              </div>
+        {/* Job Queue */}
+        <div>
+          <Card className="glass-card h-full animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                Next Jobs Ready for Cover Letters
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              {/* PDF Preview Mock */}
-              <div className="aspect-[8.5/11] bg-white m-6 rounded-lg shadow-lg border relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50">
-                  <div className="p-8 space-y-6">
-                    {/* Header */}
-                    <div className="border-b pb-4">
-                      <h1 className="text-xl font-bold text-gray-800">John Doe</h1>
-                      <p className="text-sm text-gray-600">john.doe@email.com • (555) 123-4567</p>
+            <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
+              {pendingJobs.slice(0, generateCount).map((job, index) => (
+                <div
+                  key={job.id}
+                  className={`p-3 rounded-lg border transition-all ${
+                    index < generateCount 
+                      ? 'bg-primary/5 border-primary/20' 
+                      : 'bg-muted/5 border-muted/20'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        #{job.id}
+                      </Badge>
                     </div>
-
-                    {/* Date and Address */}
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>{new Date().toLocaleDateString()}</p>
-                      <p className="pt-2">Hiring Manager<br />TechCorp Inc.<br />San Francisco, CA</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{job.company}</h4>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {job.position}
+                      </p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <Mail className="h-3 w-3 text-green-600" />
+                        <span className="text-xs text-green-600 truncate">{job.email}</span>
+                      </div>
                     </div>
-
-                    {/* Letter Content */}
-                    <div className="space-y-4 text-sm text-gray-700 leading-relaxed">
-                      <p>Dear Hiring Manager,</p>
-                      
-                      <p>I am writing to express my strong interest in the Senior Frontend Developer position at TechCorp Inc. With over 5 years of experience in modern web development and a passion for creating exceptional user experiences, I am excited about the opportunity to contribute to your innovative team.</p>
-                      
-                      <p>In my current role, I have successfully led multiple React-based projects, implementing scalable architectures and optimizing performance for applications serving millions of users. My expertise in TypeScript, Next.js, and modern development practices aligns perfectly with your requirements.</p>
-                      
-                      <p>I am particularly drawn to TechCorp's commitment to innovation and would welcome the opportunity to discuss how my skills and enthusiasm can contribute to your continued success.</p>
-                      
-                      <p>Thank you for considering my application. I look forward to hearing from you.</p>
-                      
-                      <p className="pt-4">Sincerely,<br />John Doe</p>
-                    </div>
+                    {index < generateCount && (
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    )}
                   </div>
                 </div>
-
-                {/* Glass overlay effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
-              </div>
+              ))}
+              {pendingJobs.length > generateCount && (
+                <div className="text-center py-3 border-t border-glass-border">
+                  <p className="text-sm text-muted-foreground">
+                    +{pendingJobs.length - generateCount} more jobs available
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
