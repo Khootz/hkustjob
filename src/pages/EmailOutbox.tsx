@@ -130,26 +130,26 @@ const EmailOutbox = () => {
   return (
     <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <SidebarTrigger className="glass-button p-2 rounded-lg flex-shrink-0" />
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text break-words">Email Outbox</h1>
-            <p className="text-muted-foreground text-xs sm:text-sm lg:text-base break-words">Manage your application emails and sending status</p>
+          <SidebarTrigger className="glass-button p-2 rounded-lg" />
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Email Outbox</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Manage your application emails and sending status</p>
           </div>
         </div>
-        <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <Button 
             onClick={handleToggleThrottling}
             variant={isThrottling ? "destructive" : "outline"}
-            className={`w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 ${isThrottling ? "" : "glass-button"}`}
+            className={`w-full sm:w-auto text-sm ${isThrottling ? "" : "glass-button"}`}
           >
-            {isThrottling ? <Pause className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> : <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />}
-            <span className="truncate">{isThrottling ? "Stop Throttling" : "Enable Throttling"}</span>
+            {isThrottling ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+            {isThrottling ? "Stop Throttling" : "Enable Throttling"}
           </Button>
-          <Button onClick={handleSendBatch} className="action-button gradient-primary text-white w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4">
-            <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            <span className="truncate">Send Batch</span>
+          <Button onClick={handleSendBatch} className="action-button gradient-primary text-white w-full sm:w-auto text-sm">
+            <Send className="h-4 w-4 mr-2" />
+            Send Batch
           </Button>
         </div>
       </header>
@@ -215,36 +215,34 @@ const EmailOutbox = () => {
       {/* Email List */}
       <div className="space-y-4">
         {filteredEmails.map((email, index) => (
-          <Card key={email.id} className={`glass-card hover:scale-[1.01] transition-all duration-300 animate-slide-up overflow-hidden`} style={{ animationDelay: `${(index + 5) * 0.1}s` }}>
+          <Card key={email.id} className={`glass-card hover:scale-[1.01] transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${(index + 5) * 0.1}s` }}>
             <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between sm:space-x-4">
-                <div className="space-y-2 min-w-0 flex-1">
-                  <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-3">
-                    <h3 className="font-semibold text-sm sm:text-base lg:text-lg break-words leading-tight">{email.position}</h3>
-                    <div className="self-start sm:self-auto">
-                      {getStatusBadge(email.status, email)}
-                    </div>
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <h3 className="font-semibold text-base sm:text-lg break-words">{email.position}</h3>
+                    {getStatusBadge(email.status, email)}
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1 min-w-0">
-                      <Mail className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">{email.company}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      {email.company}
                     </div>
-                    <div className="flex items-center gap-1 min-w-0">
-                      <Send className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">{email.recipient}</span>
+                    <div className="flex items-center gap-1">
+                      <Send className="h-3 w-3" />
+                      {email.recipient}
                     </div>
                     {email.status === "sent" && email.sentAt && (
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span className="text-xs">{email.sentAt}</span>
+                        {email.sentAt}
                       </div>
                     )}
                     {email.status === "queued" && email.scheduledFor && (
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span className="text-xs">Scheduled: {email.scheduledFor}</span>
+                        Scheduled: {email.scheduledFor}
                       </div>
                     )}
                   </div>
@@ -279,15 +277,15 @@ const EmailOutbox = () => {
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
+                <div className="flex flex-wrap items-center gap-2">
                   {email.status === "failed" && (
                     <Button 
                       size="sm" 
                       onClick={() => handleRetryEmail(email.id)}
-                      className="action-button text-xs sm:text-sm px-2 sm:px-3"
+                      className="action-button text-xs sm:text-sm"
                     >
                       <RefreshCw className="h-3 w-3 mr-1" />
-                      <span>Retry</span>
+                      Retry
                     </Button>
                   )}
                   {email.status === "queued" && email.priority === "high" && (
