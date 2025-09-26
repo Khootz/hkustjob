@@ -112,12 +112,12 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen p-3 sm:p-6 space-y-6 sm:space-y-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <header className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <SidebarTrigger className="glass-button p-2 rounded-lg" />
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Dashboard</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Welcome back! Here's your job application overview.</p>
+          <SidebarTrigger className="glass-button p-2 rounded-lg flex-shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text break-words">Dashboard</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm lg:text-base break-words">Welcome back! Here's your job application overview.</p>
           </div>
         </div>
         <div className="flex items-center gap-2 glass-card px-3 sm:px-4 py-2 rounded-lg">

@@ -191,29 +191,29 @@ const Jobs = () => {
   return (
     <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <header className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <SidebarTrigger className="glass-button p-2 rounded-lg" />
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Jobs</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Manage your job applications and opportunities</p>
+          <SidebarTrigger className="glass-button p-2 rounded-lg flex-shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text break-words">Jobs</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm lg:text-base break-words">Manage your job applications and opportunities</p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-3">
           <ScrapingDialog onStartScraping={handleStartScraping} isLoading={isLoading}>
-            <Button className="action-button w-full sm:w-auto text-sm">
-              <Download className="h-4 w-4 mr-2" />
-              Start Scraping
+            <Button className="action-button w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="truncate">Start Scraping</span>
             </Button>
           </ScrapingDialog>
           <Button 
             onClick={handleDownloadExcel} 
             disabled={!excelFilePath}
             variant="outline" 
-            className="glass-button w-full sm:w-auto text-sm"
+            className="glass-button w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Download Excel
+            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="truncate">Download Excel</span>
           </Button>
         </div>
       </header>
@@ -287,78 +287,83 @@ const Jobs = () => {
       {/* Jobs Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {filteredJobs.map((job, index) => (
-          <Card key={`${job.company}-${job.job_title}-${index}`} className={`glass-card hover:scale-[1.02] transition-all duration-300 animate-slide-up`} style={{ animationDelay: `${index * 0.1}s` }}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <CardTitle className="text-lg">{job.job_title}</CardTitle>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Building className="h-3 w-3" />
-                      {job.company}
+          <Card key={`${job.company}-${job.job_title}-${index}`} className={`glass-card hover:scale-[1.02] transition-all duration-300 animate-slide-up overflow-hidden`} style={{ animationDelay: `${index * 0.1}s` }}>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2 min-w-0 flex-1">
+                  <CardTitle className="text-sm sm:text-base lg:text-lg break-words leading-tight">{job.job_title}</CardTitle>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <Building className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{job.company}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {job.job_nature || "Not specified"}
+                    <div className="flex items-center gap-1 min-w-0">
+                      <MapPin className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{job.job_nature || "Not specified"}</span>
                     </div>
                   </div>
                 </div>
-                {getStatusBadge(job)}
+                <div className="flex-shrink-0">
+                  {getStatusBadge(job)}
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Mail className="h-3 w-3" />
-                  {job.email || "No email provided"}
+            <CardContent className="space-y-3 pt-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm">
+                <div className="flex items-center gap-1 text-muted-foreground min-w-0">
+                  <Mail className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{job.email || "No email provided"}</span>
                 </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
+                <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
                   <Calendar className="h-3 w-3" />
-                  {job.posting_date || "Unknown"}
+                  <span className="text-xs">{job.posting_date || "Unknown"}</span>
                 </div>
               </div>
 
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 break-words">
                 {job.details ? job.details.substring(0, 150) + '...' : "No description available"}
               </p>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Deadline: {job.deadline || "Not specified"}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
+                <span className="truncate">Deadline: {job.deadline || "Not specified"}</span>
                 {job.website && (
-                  <a href={job.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                  <a href={job.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 truncate flex-shrink-0">
                     Visit Website
                   </a>
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => handlePreviewLetter(index)}
-                  className="flex-1 action-button text-xs sm:text-sm"
-                  disabled={job.applied === "NO EMAIL"}
-                >
-                  <FileText className="h-3 w-3 mr-1" />
-                  Preview Letter
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleQueueEmail(index)}
-                  className="flex-1 glass-button text-xs sm:text-sm"
-                  disabled={job.applied === "NO EMAIL" || job.applied === true}
-                >
-                  <Mail className="h-3 w-3 mr-1" />
-                  {job.applied === true ? "Applied" : "Queue Email"}
-                </Button>
+              <div className="flex flex-col gap-2 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    size="sm" 
+                    onClick={() => handlePreviewLetter(index)}
+                    className="flex-1 action-button text-xs sm:text-sm px-2 sm:px-3"
+                    disabled={job.applied === "NO EMAIL"}
+                  >
+                    <FileText className="h-3 w-3 mr-1" />
+                    <span className="truncate">Preview Letter</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleQueueEmail(index)}
+                    className="flex-1 glass-button text-xs sm:text-sm px-2 sm:px-3"
+                    disabled={job.applied === "NO EMAIL" || job.applied === true}
+                  >
+                    <Mail className="h-3 w-3 mr-1" />
+                    <span className="truncate">{job.applied === true ? "Applied" : "Queue Email"}</span>
+                  </Button>
+                </div>
                 {job.detail_url && (
                   <Button 
                     size="sm" 
                     variant="ghost" 
-                    className="glass-button p-2 sm:flex-shrink-0"
+                    className="glass-button p-2 self-center"
                     onClick={() => window.open(job.detail_url, '_blank')}
                   >
                     <ExternalLink className="h-3 w-3" />
+                    <span className="ml-1 text-xs">View Details</span>
                   </Button>
                 )}
               </div>
