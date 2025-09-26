@@ -22,6 +22,16 @@ const CoverLetterStudio = () => {
   const [currentGenerating, setCurrentGenerating] = useState(0);
   const [generatedLetters, setGeneratedLetters] = useState<string[]>([]);
 
+  // Mock job data with company names (this would come from the Jobs page database)
+  const mockJobs = [
+    { id: 1, company: "TechCorp Inc.", position: "Senior Frontend Developer" },
+    { id: 2, company: "StartupXYZ", position: "Full Stack Engineer" },
+    { id: 3, company: "Digital Solutions", position: "React Developer" },
+    { id: 4, company: "", position: "Software Engineer" }, // No company name
+    { id: 5, company: "InnovateCo", position: "Frontend Developer" },
+    { id: 6, company: "", position: "Backend Developer" }, // No company name
+  ];
+
   const handleStartGeneration = () => {
     setShowNumberDialog(true);
   };
@@ -36,7 +46,12 @@ const CoverLetterStudio = () => {
     const interval = setInterval(() => {
       setCurrentGenerating(prev => {
         const next = prev + 1;
-        setGeneratedLetters(prevLetters => [...prevLetters, `Cover letter ${next}`]);
+        const job = mockJobs[(next - 1) % mockJobs.length];
+        const letterName = job.company 
+          ? `Cover letter for ${job.company}` 
+          : `Cover letter ${next}`;
+        
+        setGeneratedLetters(prevLetters => [...prevLetters, letterName]);
         
         if (next >= numberOfLetters) {
           clearInterval(interval);
